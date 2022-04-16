@@ -96,10 +96,10 @@ class Transformacje:
             Jednostka podawanych wartosci. The default is 'dec'.
             ["rad" - radiany, "gra" - grady, "dec" - stopnie]
     
-         Raises
-         ------
-         NotImplementedError
-             DESCRIPTION.
+        Raises
+        ------
+        NotImplementedError
+            Jezeli podana jednostka jest poza zbiorem.
     
          Returns
          -------
@@ -107,8 +107,8 @@ class Transformacje:
              Wspolrzedne geodezyjne [metry].
     
          '''
-        r   = np.sqrt(xyz[0]**2 + xyz[1]**2)           # promień
-        phi_prv = m.atan(xyz[2] / (r * (1 - self.e2)))    # pierwsze przybliilizenie
+        r   = np.sqrt(xyz[0]**2 + xyz[1]**2)
+        phi_prv = m.atan(xyz[2] / (r * (1 - self.e2)))
         phi = 0
         while abs(phi_prv - phi) > 0.000001/206265:    
             phi_prv = phi
@@ -489,7 +489,7 @@ class Transformacje:
         
     
     
-    def neu(self,xyz, xyz_sr, a = 6378137, e2 = 0.006694379990):
+    def neu(self,xyz, xyz_sr):
 
         '''
         Funkcja liczy współrzędne wektora NEU
