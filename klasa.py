@@ -647,8 +647,6 @@ class Transformacje:
                 lista.append([el*180/np.pi, Az*180/np.pi])
             
         pozycje = np.array(lista)
-        
-        print(pozycje)
 
         return pozycje
     
