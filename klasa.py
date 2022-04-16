@@ -301,8 +301,8 @@ class Transformacje:
 
         Parameters
         ----------
-        plh : TYPE
-            Wspolrzedne geodezyjne.
+        plh : LIST
+            wspolrzedne geodezyjne phi, lam, h [metry]
         jedn : STR, optional
             Jednostka wspolrzednych geodezyjnych. Domyslna jest "dec".
             ["rad" - radiany, "gra" - grady, "dec" - stopnie]
@@ -346,8 +346,8 @@ class Transformacje:
 
         Parameters
         ----------
-        plh : TYPE
-            Wspolrzedne geodezyjne.
+        plh : LIST
+            wspolrzedne geodezyjne phi, lam, h [metry]
         L0 : INT
             Poludnik zerowy [stopnie].
         jedn : STR, optional
@@ -399,8 +399,8 @@ class Transformacje:
 
         Parameters
         ----------
-        plh : TYPE
-            Wspolrzedne geodezyjne.
+        plh : LIST
+            wspolrzedne geodezyjne phi, lam, h [metry]
         jedn : STR, optional
             Jednostka wspolrzednych geodezyjnych. Domyslna jest "dec".
             ["rad" - radiany, "gra" - grady, "dec" - stopnie]
@@ -446,8 +446,8 @@ class Transformacje:
 
         Parameters
         ----------
-        plh : TYPE
-            Wspolrzedne geodezyjne.
+        plh : LIST
+            wspolrzedne geodezyjne phi, lam, h [metry]
         jedn : STR, optional
             Jednostka wspolrzednych geodezyjnych. Domyslna jest "dec".
             ["rad" - radiany, "gra" - grady, "dec" - stopnie]
@@ -570,6 +570,87 @@ class Transformacje:
         return(odl)
     
     
+    def wsp_odb(self, wsp):
+        '''
+        Funkcja przeliczajaca wspolrzedne odbiornika z 
+
+        Parameters
+        ----------
+        wsp : LIST
+            wspolrzedne geodezyjne phi, lam, h
+
+        Returns
+        -------
+        Xr : LIST
+            Wspolrzedne geocentryczne.
+        R : ARRAY
+            Macierz obrotu.
+
+        '''
+        N = self.a/(np.sqrt(1-self.e2*np.sin(wsp[0])))
+        
+        X = (N + int(wsp[2])) * np.cos(wsp[0]) *np.cos(wsp[1])
+        Y = (N + int(wsp[2])) * np.cos(wsp[0]) * np.sin(wsp[1])
+        Z = (N * (1-self.e2)+wsp[2]) * np.sin(wsp[0])
+        
+        Xr = [X,Y,Z]
+        
+        W1 = [-np.sin(wsp[0])*np.cos(wsp[1]), -np.sin(wsp[1]) , np.cos(wsp[0])*np.cos(wsp[1])]
+        W2 = [np.sin(wsp[0])*np.sin(wsp[1]),np.cos(wsp[1]),np.cos(wsp[0])*np.cos(wsp[1])]
+        W3 = [np.cos(wsp[0]),0,np.sin(wsp[0])]
+        
+        R = np.array([W1,W2,W3])
+        return Xr, R
+
+    def pozycje(self, wsp_pkt, sat_data, maska = 10):
+        '''
+        Funkcja licząca azymut i elewcje satelitow wzgledem danego punktu we wspolrzednych geocentrycznych.
+        Dodatkowo zwraca też wspolczynniki DOT swiadczaca o dokladnosci pozycji. 
+
+        Parameters
+        ----------
+        wsp_pkt : LIST
+            Wspolrzedne odbiornika phi, lam, h [stopnie].
+        sat_data : TYPE
+            Geocentryczne wspolrzedne satelitow [metry].
+        maska : int or FLOAT, optional
+            Maska wykluczajaca wyniki satelitow o zbyt niskiej elewacji by mozna bylo
+            uznac je za prawidlowo obliczona. 
+            Domyslne jest 10 [stopni].
+
+        Returns
+        -------
+        pozycje : LIST
+            Lista zawierajaca elewacje i azymut satelitow [stopnie].
+
+        '''
+        Xr, R = self.wsp_odb(wsp_pkt)
+        
+        lista = []
+        
+        for Xs in sat_data:
+            Xsr = Xs[0:3] - Xr
+            
+            Xneu = R.T@Xsr
+        
+            Az = np.arctan2(Xneu[1],Xneu[0])
+            el = np.arcsin(Xneu[2]/np.sqrt(Xneu[0]**2+Xneu[1]**2+Xneu[2]**2))
+            
+            while abs(Az) > 2*np.pi or Az < 0:
+                    if Az < 0:
+                        Az+=(2*np.pi)
+                    else:
+                        Az-=(2*np.pi)
+            
+            
+            if el*180/np.pi > maska:
+                lista.append([el*180/np.pi, Az*180/np.pi])
+            
+        pozycje = np.array(lista)
+        
+        print(pozycje)
+
+        return pozycje
     
     
     
