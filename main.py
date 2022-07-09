@@ -9,7 +9,7 @@ import numpy as np
 from klasa import Transformacje
 
         
-def wys(lista = list, nazwa = 'wsp', jedn = 'm'):
+def wys(lista : list, nazwa = 'wsp', jedn = 'm'):
     '''
     Funkcja sluzaca do wyswietlania wynikow.
     
